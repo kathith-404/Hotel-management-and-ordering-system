@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Grand Aurelia — Hotel Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dark: #8a6b28;
+    --cream: #f5f0e8;
+    --dark: #0d0d0d;
+    --dark-2: #141414;
+    --dark-3: #1c1c1c;
+    --dark-4: #252525;
+    --text: #d4c9b5;
+    --text-dim: #7a7060;
+    --red: #c0392b;
+    --green: #27ae60;
+    --blue: #2980b9;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ═══════════════ BACKGROUND ═══════════════ */
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.03) 0%, transparent 50%),
+      linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 100%);
+    pointer-events: none;
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* ═══════════════ PAGES ═══════════════ */
+  .page { display: none; position: relative; z-index: 1; min-height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+
+  /* ═══════════════ LANDING PAGE ═══════════════ */
+  #landing {
+    align-items: center; justify-content: center;
+    text-align: center; padding: 40px 20px;
+  }
+
+  .hotel-emblem {
+    width: 80px; height: 80px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 32px;
+    position: relative;
+    animation: emblemPulse 3s ease-in-out infinite;
+  }
+  .hotel-emblem::before {
+    content: '';
+    position: absolute; inset: 6px;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 50%;
+  }
+  .hotel-emblem svg { width: 36px; height: 36px; fill: var(--gold); }
+  @keyframes emblemPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+    50% { box-shadow: 0 0 0 12px rgba(201,168,76,0.05); }
+  }
+
+  .hotel-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(42px, 7vw, 76px);
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    color: var(--cream);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .hotel-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(13px, 2vw, 16px);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    margin-bottom: 16px;
+  }
+  .hotel-tagline {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 60px;
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 0 auto 48px;
+    max-width: 300px;
+  }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dark)); }
+  .divider-line:last-child { background: linear-gradient(90deg, var(--gold-dark), transparent); }
+  .divider-diamond {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  .portal-cards {
+    display: flex; gap: 24px; justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .portal-card {
+    width: 260px;
+    background: var(--dark-2);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 2px;
+    padding: 48px 32px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    text-decoration: none;
+  }
+  .portal-card::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+  }
+  .portal-card:hover { border-color: rgba(201,168,76,0.4); transform: translateY(-4px); }
+  .portal-card:hover::before { transform: scaleX(1); }
+
+  .card-icon {
+    width: 56px; height: 56px;
+    margin: 0 auto 24px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 50%;
+  }
+  .card-icon svg { width: 26px; height: 26px; }
+
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 12px;
+  }
+  .card-desc {
+    font-size: 11px; font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    line-height: 1.8;
+  }
+
+  .staff-card .card-icon { border-color: rgba(41,128,185,0.3); }
+  .staff-card .card-icon svg { stroke: #5ba3d0; fill: none; stroke-width: 1.5; }
+  .guest-card .card-icon { border-color: rgba(201,168,76,0.3); }
+  .guest-card .card-icon svg { stroke: var(--gold); fill: none; stroke-width: 1.5; }
+
+  /* ═══════════════ TOP BAR ═══════════════ */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,13,13,0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(201,168,76,0.12);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+    flex-shrink: 0;
+  }
+  .topbar-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--cream);
+  }
+  .topbar-brand span { color: var(--gold); }
+
+  .topbar-info {
+    display: flex; align-items: center; gap: 20px;
+    font-size: 11px; letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .topbar-badge {
+    padding: 4px 12px;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 1px;
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
+
+  .btn-back {
+    padding: 8px 20px;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.2);
+    color: var(--text-dim);
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 1px;
+  }
+  .btn-back:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ═══════════════ PAGE LAYOUT ═══════════════ */
+  .page-content {
+    flex: 1;
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+    height: calc(100vh - 64px);
+  }
+
+  /* ═══════════════ SIDEBAR NAV ═══════════════ */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--dark-2);
+    border-right: 1px solid rgba(201,168,76,0.08);
+    padding: 32px 0;
+    overflow-y: auto;
+  }
+
+  .sidebar-section-label {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0 24px;
+    margin-bottom: 8px;
+    margin-top: 24px;
+  }
+  .sidebar-section-label:first-child { margin-top: 0; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 0.25s;
+    border-left: 2px solid transparent;
+    position: relative;
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; stroke: var(--text-dim); fill: none; stroke-width: 1.5; transition: stroke 0.25s; }
+  .nav-item span { font-size: 12px; letter-spacing: 0.08em; color: var(--text-dim); font-weight: 300; transition: color 0.25s; }
+  .nav-item:hover { background: rgba(201,168,76,0.04); }
+  .nav-item:hover svg, .nav-item.active svg { stroke: var(--gold); }
+  .nav-item:hover span, .nav-item.active span { color: var(--cream); }
+  .nav-item.active { background: rgba(201,168,76,0.06); border-left-color: var(--gold); }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--red);
+    color: white;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  /* ═══════════════ MAIN CONTENT ═══════════════ */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px 48px;
+    background: var(--dark);
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-header {
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 40px; font-weight: 300;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+  .section-subtitle {
+    font-size: 11px; letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* ═══════════════ CARDS ═══════════════ */
+  .card {
+    background: var(--dark-2);
+    border: 1px solid rgba(201,168,76,0.08);
+    border-radius: 2px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+  }
+  .card:hover { border-color: rgba(201,168,76,0.18); }
+
+  .card-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+  .card-label {
+    font-size: 10px; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .card-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; color: var(--cream); font-weight: 400;
+  }
+  .card-value.gold { color: var(--gold); }
+  .card-value.large { font-size: 36px; }
+
+  /* ═══════════════ MENU GRID ═══════════════ */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .menu-item {
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.08);
+    border-radius: 2px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .menu-item:hover { border-color: rgba(201,168,76,0.3); transform: translateY(-2px); }
+  .menu-item.selected { border-color: var(--gold); background: rgba(201,168,76,0.05); }
+  .menu-item.selected::after {
+    content: '✓';
+    position: absolute; top: 10px; right: 12px;
+    color: var(--gold); font-size: 14px;
+  }
+
+  .menu-emoji { font-size: 28px; margin-bottom: 10px; }
+  .menu-name { font-size: 13px; color: var(--cream); font-weight: 400; margin-bottom: 4px; }
+  .menu-desc { font-size: 10px; color: var(--text-dim); letter-spacing: 0.05em; margin-bottom: 10px; }
+  .menu-price { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--gold); }
+
+  .qty-controls {
+    display: flex; align-items: center; gap: 10px; margin-top: 10px;
+  }
+  .qty-btn {
+    width: 26px; height: 26px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 1px;
+    color: var(--gold);
+    font-size: 16px; line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qty-btn:hover { background: rgba(201,168,76,0.2); }
+  .qty-num { font-size: 14px; color: var(--cream); min-width: 20px; text-align: center; }
+
+  /* ═══════════════ CATEGORY TABS ═══════════════ */
+  .cat-tabs {
+    display: flex; gap: 4px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .cat-tab {
+    padding: 8px 18px;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.1);
+    border-radius: 1px;
+    color: var(--text-dim);
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .cat-tab:hover, .cat-tab.active {
+    background: rgba(201,168,76,0.08);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* ═══════════════ ORDER CART ═══════════════ */
+  .cart-panel {
+    position: fixed;
+    right: 0; top: 64px; bottom: 0;
+    width: 320px;
+    background: var(--dark-2);
+    border-left: 1px solid rgba(201,168,76,0.12);
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.4s ease;
+    z-index: 50;
+  }
+  .cart-panel.open { transform: translateX(0); }
+
+  .cart-header {
+    padding: 24px;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cart-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--cream); }
+  .cart-close {
+    background: none; border: none;
+    color: var(--text-dim); font-size: 20px;
+    cursor: pointer; line-height: 1;
+    transition: color 0.2s;
+  }
+  .cart-close:hover { color: var(--gold); }
+
+  .cart-items { flex: 1; overflow-y: auto; padding: 16px 24px; }
+  .cart-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(201,168,76,0.05);
+  }
+  .cart-item-name { font-size: 12px; color: var(--cream); }
+  .cart-item-qty { font-size: 11px; color: var(--text-dim); }
+  .cart-item-price { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--gold); }
+  .cart-remove { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px; transition: color 0.2s; }
+  .cart-remove:hover { color: var(--red); }
+
+  .cart-footer { padding: 20px 24px; border-top: 1px solid rgba(201,168,76,0.08); }
+  .cart-total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+  .cart-total-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); }
+  .cart-total-val { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--gold); }
+
+  .cart-toggle {
+    position: fixed;
+    right: 24px; bottom: 32px;
+    z-index: 60;
+    display: none;
+  }
+  .cart-toggle.visible { display: flex; }
+  .cart-btn-float {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 24px;
+    background: var(--gold);
+    border: none; border-radius: 2px;
+    color: var(--dark); font-family: 'Jost', sans-serif;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(201,168,76,0.3);
+    transition: all 0.3s;
+    font-weight: 500;
+  }
+  .cart-btn-float:hover { background: var(--gold-light); transform: translateY(-2px); }
+  .cart-count-bubble {
+    background: var(--dark); color: var(--gold);
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500;
+  }
+
+  /* ═══════════════ BUTTONS ═══════════════ */
+  .btn-primary {
+    padding: 14px 36px;
+    background: var(--gold);
+    border: none; border-radius: 2px;
+    color: var(--dark);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-outline {
+    padding: 12px 28px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 1px;
+  }
+  .btn-outline:hover { background: rgba(201,168,76,0.1); }
+
+  .btn-danger {
+    padding: 12px 24px;
+    background: rgba(192,57,43,0.1);
+    border: 1px solid rgba(192,57,43,0.3);
+    color: #e74c3c;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 1px;
+  }
+  .btn-danger:hover { background: rgba(192,57,43,0.2); }
+
+  /* ═══════════════ FORM ELEMENTS ═══════════════ */
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block;
+    font-size: 10px; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.1);
+    border-radius: 1px;
+    color: var(--cream);
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    transition: border-color 0.25s;
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: rgba(201,168,76,0.4);
+  }
+  .form-select option { background: var(--dark-3); }
+  .form-textarea { resize: vertical; min-height: 100px; }
+
+  /* ═══════════════ STATUS BADGES ═══════════════ */
+  .status {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 1px;
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .status-pending { background: rgba(243,156,18,0.1); color: #f39c12; border: 1px solid rgba(243,156,18,0.2); }
+  .status-pending::before { background: #f39c12; }
+  .status-confirmed { background: rgba(39,174,96,0.1); color: #27ae60; border: 1px solid rgba(39,174,96,0.2); }
+  .status-confirmed::before { background: #27ae60; }
+  .status-completed { background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+  .status-completed::before { background: var(--gold); }
+  .status-urgent { background: rgba(192,57,43,0.1); color: #e74c3c; border: 1px solid rgba(192,57,43,0.2); }
+  .status-urgent::before { background: #e74c3c; animation: blink 1s infinite; }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
+
+  /* ═══════════════ STAFF REQUEST CARDS ═══════════════ */
+  .request-card {
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.08);
+    border-radius: 2px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 20px;
+    transition: border-color 0.3s;
+  }
+  .request-card:hover { border-color: rgba(201,168,76,0.2); }
+  .request-card.urgent { border-left: 3px solid var(--red); }
+  .request-room {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; color: var(--gold);
+    min-width: 60px; text-align: center;
+  }
+  .request-info { flex: 1; }
+  .request-title { font-size: 13px; color: var(--cream); margin-bottom: 4px; }
+  .request-meta { font-size: 10px; color: var(--text-dim); letter-spacing: 0.05em; }
+  .request-actions { display: flex; gap: 10px; align-items: center; }
+
+  /* ═══════════════ BILL ═══════════════ */
+  .bill-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+  }
+  .bill-table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+    font-weight: 300;
+  }
+  .bill-table td {
+    padding: 14px 16px;
+    font-size: 12px; color: var(--text);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .bill-table tr:last-child td { border-bottom: none; }
+  .bill-table .total-row td {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; color: var(--gold);
+    border-top: 1px solid rgba(201,168,76,0.15);
+    padding-top: 18px;
+  }
+
+  /* ═══════════════ STAT BOXES ═══════════════ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-box {
+    background: var(--dark-2);
+    border: 1px solid rgba(201,168,76,0.08);
+    border-radius: 2px;
+    padding: 24px 20px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 44px; color: var(--gold);
+    line-height: 1; margin-bottom: 8px;
+  }
+  .stat-label { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-dim); }
+
+  /* ═══════════════ CALL BELL ═══════════════ */
+  .bell-container {
+    text-align: center; padding: 60px 20px;
+  }
+  .bell-icon {
+    width: 120px; height: 120px;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 32px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: rgba(201,168,76,0.04);
+  }
+  .bell-icon:hover { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .bell-icon.ringing { animation: bellRing 0.6s ease-in-out 3; }
+  .bell-icon svg { width: 52px; height: 52px; stroke: var(--gold); fill: none; stroke-width: 1.2; }
+  @keyframes bellRing {
+    0%, 100% { transform: rotate(0); }
+    20% { transform: rotate(-15deg); }
+    40% { transform: rotate(15deg); }
+    60% { transform: rotate(-10deg); }
+    80% { transform: rotate(10deg); }
+  }
+  .bell-pulse {
+    position: absolute; inset: -10px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.2);
+    animation: pulse-ring 2s ease-out infinite;
+    display: none;
+  }
+  .bell-icon.ringing .bell-pulse { display: block; }
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+  .bell-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; color: var(--cream); margin-bottom: 8px; }
+  .bell-desc { font-size: 11px; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 40px; }
+
+  /* ═══════════════ NOTIFICATION TOAST ═══════════════ */
+  .toast-container {
+    position: fixed;
+    top: 80px; right: 24px;
+    z-index: 200;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .toast {
+    padding: 14px 20px;
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 2px;
+    font-size: 12px; color: var(--cream);
+    min-width: 260px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    animation: slideIn 0.3s ease;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast.success { border-color: rgba(39,174,96,0.3); }
+  .toast.error { border-color: rgba(192,57,43,0.3); }
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* ═══════════════ ROOM SELECT ═══════════════ */
+  .room-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .room-btn {
+    padding: 14px 8px;
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.1);
+    border-radius: 1px;
+    color: var(--text-dim);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+  }
+  .room-btn:hover, .room-btn.selected { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.06); }
+  .room-btn.occupied { border-color: rgba(39,174,96,0.3); color: #27ae60; }
+  .room-btn.service { border-color: rgba(243,156,18,0.4); color: #f39c12; }
+  .room-btn.calling { border-color: rgba(192,57,43,0.4); color: #e74c3c; animation: pulse-border 1.5s infinite; }
+  @keyframes pulse-border {
+    0%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,0); }
+    50% { box-shadow: 0 0 0 4px rgba(192,57,43,0.2); }
+  }
+
+  /* Room legend */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: 0.1em; color: var(--text-dim); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ═══════════════ PAYMENT ═══════════════ */
+  .pay-methods { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+  .pay-method {
+    flex: 1; min-width: 120px;
+    padding: 20px 16px;
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.1);
+    border-radius: 2px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .pay-method:hover, .pay-method.selected {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.05);
+  }
+  .pay-method-icon { font-size: 24px; margin-bottom: 8px; }
+  .pay-method-name { font-size: 11px; letter-spacing: 0.1em; color: var(--text-dim); }
+  .pay-method.selected .pay-method-name { color: var(--gold); }
+
+  /* ═══════════════ SCROLLBAR ═══════════════ */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--dark-2); }
+  ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.4); }
+
+  /* UTILS */
+  .gap-12 { display: flex; gap: 12px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-32 { margin-top: 32px; }
+  .mb-20 { margin-bottom: 20px; }
+  .text-gold { color: var(--gold); }
+  .text-dim { color: var(--text-dim); }
+  .font-serif { font-family: 'Cormorant Garamond', serif; }
+
+  @media (max-width: 768px) {
+    .sidebar { width: 56px; }
+    .sidebar-section-label, .nav-item span, .nav-badge { display: none; }
+    .nav-item { justify-content: center; padding: 14px; }
+    .main-content { padding: 24px 20px; }
+    .topbar { padding: 0 16px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+<div class="bg-grid"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- LANDING PAGE -->
+<!-- ══════════════════════════════════════════ -->
+<div id="landing" class="page active">
+  <div class="hotel-emblem">
+    <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 4L4 14v18h10v-9h8v9h10V14L18 4z"/>
+    </svg>
+  </div>
+  <div class="hotel-name">AURELIA</div>
+  <div class="hotel-sub">Grand Hotel & Suites</div>
+  <div class="hotel-tagline">Est. 1924 · Excellence in Hospitality</div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <p style="font-size:12px;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-bottom:36px;">Select your portal to continue</p>
+
+  <div class="portal-cards">
+    <div class="portal-card staff-card" onclick="openStaff()">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </div>
+      <div class="card-title">Staff Portal</div>
+      <div class="card-desc">Manage orders · Attend requests · View rooms · Guest services</div>
+    </div>
+
+    <div class="portal-card guest-card" onclick="openGuest()">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      </div>
+      <div class="card-title">Guest Portal</div>
+      <div class="card-desc">Order food · Room service · Pay bill · Call staff</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- GUEST PAGE -->
+<!-- ══════════════════════════════════════════ -->
+<div id="guestPage" class="page">
+  <div class="topbar">
+    <div class="topbar-brand">AURELIA <span>·</span> Guest Services</div>
+    <div class="topbar-info">
+      <div class="topbar-badge" id="guestRoomBadge">Room 201</div>
+      <button class="btn-back" onclick="goHome()">← Exit</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="sidebar" id="guestSidebar">
+      <div class="sidebar-section-label">Services</div>
+      <div class="nav-item active" onclick="showGuestSection('gOrderFood', this)">
+        <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span>Order Food</span>
+      </div>
+      <div class="nav-item" onclick="showGuestSection('gRoomService', this)">
+        <svg viewBox="0 0 24 24"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+        <span>Room Service</span>
+      </div>
+      <div class="nav-item" onclick="showGuestSection('gPayBill', this)">
+        <svg viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        <span>Pay Bill</span>
+      </div>
+      <div class="nav-item" onclick="showGuestSection('gCallStaff', this)">
+        <svg viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span>Call Staff</span>
+        <span class="nav-badge" id="gCallBadge" style="display:none">1</span>
+      </div>
+      <div class="sidebar-section-label">Account</div>
+      <div class="nav-item" onclick="showGuestSection('gMyOrders', this)">
+        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        <span>My Orders</span>
+      </div>
+    </div>
+
+    <div class="main-content">
+
+      <!-- Order Food -->
+      <div class="section active" id="gOrderFood">
+        <div class="section-header">
+          <div class="section-title">Dining Menu</div>
+          <div class="section-subtitle">In-room dining available 24 hours</div>
+        </div>
+        <div class="cat-tabs">
+          <button class="cat-tab active" onclick="filterMenu('all', this)">All</button>
+          <button class="cat-tab" onclick="filterMenu('breakfast', this)">Breakfast</button>
+          <button class="cat-tab" onclick="filterMenu('mains', this)">Mains</button>
+          <button class="cat-tab" onclick="filterMenu('desserts', this)">Desserts</button>
+          <button class="cat-tab" onclick="filterMenu('beverages', this)">Beverages</button>
+        </div>
+        <div class="menu-grid" id="menuGrid"></div>
+        <div style="text-align:right;margin-top:12px;">
+          <span style="font-size:11px;color:var(--text-dim)">* GST & service charge included</span>
+        </div>
+      </div>
+
+      <!-- Room Service -->
+      <div class="section" id="gRoomService">
+        <div class="section-header">
+          <div class="section-title">Room Service</div>
+          <div class="section-subtitle">Request amenities & housekeeping</div>
+        </div>
+        <div class="menu-grid" id="serviceGrid"></div>
+      </div>
+
+      <!-- Pay Bill -->
+      <div class="section" id="gPayBill">
+        <div class="section-header">
+          <div class="section-title">Your Account</div>
+          <div class="section-subtitle">Statement & checkout</div>
+        </div>
+        <div class="card" id="billCard">
+          <div class="card-row" style="margin-bottom:24px;">
+            <div>
+              <div class="card-label">Guest Name</div>
+              <div class="card-value">Mr. Alex Sharma</div>
+            </div>
+            <div>
+              <div class="card-label">Room</div>
+              <div class="card-value gold" id="billRoom">201</div>
+            </div>
+            <div>
+              <div class="card-label">Check-in</div>
+              <div class="card-value" style="font-size:16px;">17 May 2026</div>
+            </div>
+            <div>
+              <div class="card-label">Nights</div>
+              <div class="card-value">3</div>
+            </div>
+          </div>
+          <table class="bill-table" id="billTable"></table>
+          <div class="pay-methods">
+            <div class="pay-method selected" onclick="selectPayMethod(this)">
+              <div class="pay-method-icon">💳</div>
+              <div class="pay-method-name">Card</div>
+            </div>
+            <div class="pay-method" onclick="selectPayMethod(this)">
+              <div class="pay-method-icon">📱</div>
+              <div class="pay-method-name">UPI</div>
+            </div>
+            <div class="pay-method" onclick="selectPayMethod(this)">
+              <div class="pay-method-icon">💵</div>
+              <div class="pay-method-name">Cash</div>
+            </div>
+            <div class="pay-method" onclick="selectPayMethod(this)">
+              <div class="pay-method-icon">🏦</div>
+              <div class="pay-method-name">Net Banking</div>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="payBill()">Confirm & Pay</button>
+        </div>
+        <div id="paidMsg" style="display:none;">
+          <div class="card" style="text-align:center;padding:60px 40px;">
+            <div style="font-size:56px;margin-bottom:20px;">✅</div>
+            <div class="section-title" style="margin-bottom:10px;">Payment Successful</div>
+            <p style="color:var(--text-dim);font-size:12px;letter-spacing:0.1em;">Thank you for staying with us. Your receipt has been emailed.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Call Staff -->
+      <div class="section" id="gCallStaff">
+        <div class="section-header">
+          <div class="section-title">Call Staff</div>
+          <div class="section-subtitle">We'll be with you shortly</div>
+        </div>
+        <div class="card" style="max-width:460px;">
+          <div class="form-group">
+            <label class="form-label">Your Room Number</label>
+            <input class="form-input" id="callRoomInput" value="201" type="number" min="100" max="999">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type of Assistance</label>
+            <select class="form-select" id="callType">
+              <option value="general">General Assistance</option>
+              <option value="maintenance">Maintenance Issue</option>
+              <option value="housekeeping">Housekeeping</option>
+              <option value="food">Food & Beverage Query</option>
+              <option value="medical">Medical Assistance</option>
+              <option value="checkout">Checkout Assistance</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Additional Notes (optional)</label>
+            <textarea class="form-textarea" id="callNote" placeholder="Please describe your request…"></textarea>
+          </div>
+        </div>
+        <div class="bell-container" style="padding:40px 0 20px;">
+          <div class="bell-icon" id="bellIcon" onclick="callStaff()">
+            <div class="bell-pulse"></div>
+            <svg viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          </div>
+          <div class="bell-title">Ring for Service</div>
+          <div class="bell-desc">Tap the bell to alert our staff immediately</div>
+          <div id="callStatus" style="display:none;margin-top:20px;">
+            <span class="status status-pending">Staff on the way</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Orders -->
+      <div class="section" id="gMyOrders">
+        <div class="section-header">
+          <div class="section-title">My Orders</div>
+          <div class="section-subtitle">Track your requests</div>
+        </div>
+        <div id="myOrdersList"></div>
+      </div>
+
+    </div><!-- end main-content -->
+  </div><!-- end page-content -->
+</div>
+
+<!-- Cart Floating Button -->
+<div class="cart-toggle" id="cartToggle">
+  <button class="cart-btn-float" onclick="toggleCart()">
+    🛒 <span>View Cart</span>
+    <div class="cart-count-bubble" id="cartCountBubble">0</div>
+  </button>
+</div>
+
+<!-- Cart Slide Panel -->
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-header">
+    <div class="cart-title">Your Order</div>
+    <button class="cart-close" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItemsEl"></div>
+  <div class="cart-footer">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total</span>
+      <span class="cart-total-val" id="cartTotalEl">₹0</span>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="placeOrder()">Place Order</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- STAFF PAGE -->
+<!-- ══════════════════════════════════════════ -->
+<div id="staffPage" class="page">
+  <div class="topbar">
+    <div class="topbar-brand">AURELIA <span>·</span> Staff Dashboard</div>
+    <div class="topbar-info">
+      <div class="topbar-badge">Front Desk · Shift A</div>
+      <button class="btn-back" onclick="goHome()">← Exit</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="sidebar">
+      <div class="sidebar-section-label">Operations</div>
+      <div class="nav-item active" onclick="showStaffSection('sDashboard', this)">
+        <svg viewBox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="showStaffSection('sOrders', this)">
+        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span>Food Orders</span>
+        <span class="nav-badge" id="sOrderBadge">0</span>
+      </div>
+      <div class="nav-item" onclick="showStaffSection('sServiceReq', this)">
+        <svg viewBox="0 0 24 24"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+        <span>Service Req.</span>
+        <span class="nav-badge" id="sServiceBadge">0</span>
+      </div>
+      <div class="nav-item" onclick="showStaffSection('sCallReq', this)">
+        <svg viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span>Call Requests</span>
+        <span class="nav-badge" id="sCallBadgeS" style="display:none">0</span>
+      </div>
+      <div class="nav-item" onclick="showStaffSection('sRooms', this)">
+        <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span>Room Status</span>
+      </div>
+    </div>
+
+    <div class="main-content">
+
+      <!-- Dashboard -->
+      <div class="section active" id="sDashboard">
+        <div class="section-header">
+          <div class="section-title">Good Morning, Staff</div>
+          <div class="section-subtitle">Sunday, 17 May 2026 · Shift Overview</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-num" id="dashOccupied">12</div>
+            <div class="stat-label">Rooms Occupied</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="dashOrders">0</div>
+            <div class="stat-label">Food Orders</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="dashService">0</div>
+            <div class="stat-label">Service Requests</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="dashCalls">0</div>
+            <div class="stat-label">Staff Calls</div>
+          </div>
+        </div>
+
+        <div class="section-header" style="margin-top:20px;">
+          <div class="section-title" style="font-size:24px;">Recent Activity</div>
+        </div>
+        <div id="activityFeed">
+          <div class="request-card">
+            <div class="request-room">—</div>
+            <div class="request-info">
+              <div class="request-title">No activity yet. Guest actions will appear here.</div>
+              <div class="request-meta">Waiting for requests…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Food Orders -->
+      <div class="section" id="sOrders">
+        <div class="section-header">
+          <div class="section-title">Food Orders</div>
+          <div class="section-subtitle">Live incoming orders from all rooms</div>
+        </div>
+        <div id="staffOrdersList">
+          <div style="color:var(--text-dim);font-size:12px;padding:20px 0;">No food orders yet.</div>
+        </div>
+      </div>
+
+      <!-- Service Requests -->
+      <div class="section" id="sServiceReq">
+        <div class="section-header">
+          <div class="section-title">Service Requests</div>
+          <div class="section-subtitle">Room service & amenity requests</div>
+        </div>
+        <div id="staffServiceList">
+          <div style="color:var(--text-dim);font-size:12px;padding:20px 0;">No service requests yet.</div>
+        </div>
+      </div>
+
+      <!-- Call Requests -->
+      <div class="section" id="sCallReq">
+        <div class="section-header">
+          <div class="section-title">Call Requests</div>
+          <div class="section-subtitle">Guests requesting staff assistance</div>
+        </div>
+        <div id="staffCallList">
+          <div style="color:var(--text-dim);font-size:12px;padding:20px 0;">No call requests yet.</div>
+        </div>
+      </div>
+
+      <!-- Room Status -->
+      <div class="section" id="sRooms">
+        <div class="section-header">
+          <div class="section-title">Room Status</div>
+          <div class="section-subtitle">Live room overview — Floors 2 & 3</div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--text-dim)"></div>Vacant</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#27ae60"></div>Occupied</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>Service Requested</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Staff Called</div>
+        </div>
+        <div class="room-grid" id="roomGrid"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const MENU = [
+  { id:1, cat:'breakfast', emoji:'🥞', name:'Pancake Stack', desc:'Buttermilk, maple syrup, fresh berries', price:420 },
+  { id:2, cat:'breakfast', emoji:'🍳', name:'Full English', desc:'Eggs, bacon, sausage, toast, beans', price:580 },
+  { id:3, cat:'breakfast', emoji:'🥣', name:'Granola Bowl', desc:'Greek yoghurt, honey, seasonal fruits', price:320 },
+  { id:4, cat:'mains', emoji:'🍝', name:'Pasta Arrabiata', desc:'San Marzano tomatoes, fresh basil', price:680 },
+  { id:5, cat:'mains', emoji:'🍗', name:'Grilled Chicken', desc:'Herb marinade, seasonal vegetables', price:820 },
+  { id:6, cat:'mains', emoji:'🐟', name:'Pan-seared Salmon', desc:'Lemon butter, asparagus, quinoa', price:980 },
+  { id:7, cat:'mains', emoji:'🥗', name:'Garden Salad', desc:'Mixed greens, vinaigrette, croutons', price:340 },
+  { id:8, cat:'desserts', emoji:'🎂', name:'Chocolate Lava Cake', desc:'Warm, dark chocolate, vanilla ice cream', price:380 },
+  { id:9, cat:'desserts', emoji:'🍮', name:'Crème Brûlée', desc:'Classic French custard, caramelised', price:350 },
+  { id:10, cat:'beverages', emoji:'☕', name:'Artisan Coffee', desc:'Single origin, French press or espresso', price:180 },
+  { id:11, cat:'beverages', emoji:'🍵', name:'Herbal Tea Selection', desc:'Chamomile, peppermint, green tea', price:140 },
+  { id:12, cat:'beverages', emoji:'🥤', name:'Fresh Juice', desc:'Orange, mango, or watermelon', price:200 },
+];
+
+const SERVICES = [
+  { id:'s1', emoji:'🛏️', name:'Turn-Down Service', desc:'Evening bed preparation', price:0 },
+  { id:'s2', emoji:'🧹', name:'Housekeeping', desc:'Full room cleaning', price:0 },
+  { id:'s3', emoji:'🛁', name:'Extra Towels', desc:'Luxury cotton towels', price:0 },
+  { id:'s4', emoji:'🧊', name:'Ice & Minibar Refill', desc:'Minibar items at menu price', price:0 },
+  { id:'s5', emoji:'💆', name:'In-Room Massage', desc:'60-min relaxation therapy', price:2400 },
+  { id:'s6', emoji:'🌹', name:'Flower Arrangement', desc:'Fresh seasonal blooms', price:800 },
+  { id:'s7', emoji:'🍾', name:'Champagne & Chocolates', desc:'Celebratory package', price:3200 },
+  { id:'s8', emoji:'👔', name:'Laundry & Pressing', desc:'24-hour turnaround', price:350 },
+];
+
+const ROOMS = [201,202,203,204,205,206,207,208,301,302,303,304,305,306,307,308];
+const occupiedRooms = new Set([201,202,204,205,207,301,303,304,306,308,302,205]);
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let cart = {}; // {id: qty}
+let currentFilter = 'all';
+let guestRoom = 201;
+let orders = []; // all orders
+let serviceRequests = [];
+let callRequests = [];
+let activities = [];
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function openStaff() {
+  showPage('staffPage');
+  renderRooms();
+  updateStaffDashboard();
+}
+
+function openGuest() {
+  const r = prompt('Enter your room number (e.g. 201):', '201');
+  if (r && !isNaN(r)) {
+    guestRoom = parseInt(r);
+    document.getElementById('guestRoomBadge').textContent = 'Room ' + guestRoom;
+    document.getElementById('callRoomInput').value = guestRoom;
+    document.getElementById('billRoom').textContent = guestRoom;
+  }
+  showPage('guestPage');
+  renderMenuGrid();
+  renderServiceGrid();
+  renderBill();
+  renderMyOrders();
+}
+
+function goHome() {
+  cart = {};
+  updateCartUI();
+  showPage('landing');
+}
+
+function showGuestSection(id, navEl) {
+  document.querySelectorAll('#guestPage .section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#guestSidebar .nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+
+  if (id === 'gMyOrders') renderMyOrders();
+  if (id === 'gPayBill') renderBill();
+
+  // hide cart on non-food sections
+  const cartToggle = document.getElementById('cartToggle');
+  if (id === 'gOrderFood') {
+    cartToggle.classList.toggle('visible', Object.keys(cart).length > 0);
+  } else {
+    cartToggle.classList.remove('visible');
+    document.getElementById('cartPanel').classList.remove('open');
+  }
+}
+
+function showStaffSection(id, navEl) {
+  document.querySelectorAll('#staffPage .section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#staffPage .sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  if (id === 'sRooms') renderRooms();
+}
+
+// ═══════════════════════════════════════════
+// MENU RENDERING
+// ═══════════════════════════════════════════
+function renderMenuGrid() {
+  const grid = document.getElementById('menuGrid');
+  const items = currentFilter === 'all' ? MENU : MENU.filter(m => m.cat === currentFilter);
+  grid.innerHTML = items.map(item => {
+    const qty = cart[item.id] || 0;
+    return `<div class="menu-item ${qty>0?'selected':''}" id="mi_${item.id}">
+      <div class="menu-emoji">${item.emoji}</div>
+      <div class="menu-name">${item.name}</div>
+      <div class="menu-desc">${item.desc}</div>
+      <div class="menu-price">₹${item.price}</div>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
+        <span class="qty-num" id="qty_${item.id}">${qty}</span>
+        <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterMenu(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderMenuGrid();
+}
+
+function renderServiceGrid() {
+  const grid = document.getElementById('serviceGrid');
+  grid.innerHTML = SERVICES.map(svc => `
+    <div class="menu-item" id="svc_${svc.id}" onclick="requestService('${svc.id}')">
+      <div class="menu-emoji">${svc.emoji}</div>
+      <div class="menu-name">${svc.name}</div>
+      <div class="menu-desc">${svc.desc}</div>
+      <div class="menu-price">${svc.price > 0 ? '₹'+svc.price : 'Complimentary'}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════
+// CART
+// ═══════════════════════════════════════════
+function changeQty(id, delta) {
+  cart[id] = Math.max(0, (cart[id]||0) + delta);
+  if (cart[id] === 0) delete cart[id];
+  updateCartUI();
+  renderMenuGrid();
+}
+
+function updateCartUI() {
+  const total = Object.entries(cart).reduce((s,[id,qty]) => {
+    const item = MENU.find(m => m.id == id);
+    return s + (item ? item.price*qty : 0);
+  }, 0);
+  const count = Object.values(cart).reduce((s,q) => s+q, 0);
+
+  document.getElementById('cartCountBubble').textContent = count;
+  document.getElementById('cartTotalEl').textContent = '₹' + total.toLocaleString();
+
+  const toggle = document.getElementById('cartToggle');
+  const activeSection = document.querySelector('#guestPage .section.active');
+  if (count > 0 && activeSection && activeSection.id === 'gOrderFood') {
+    toggle.classList.add('visible');
+  } else {
+    toggle.classList.remove('visible');
+  }
+
+  // Cart items
+  const el = document.getElementById('cartItemsEl');
+  if (count === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:40px 0;">Your cart is empty</div>';
+    return;
+  }
+  el.innerHTML = Object.entries(cart).map(([id,qty]) => {
+    const item = MENU.find(m => m.id == id);
+    if (!item) return '';
+    return `<div class="cart-item">
+      <div>
+        <div class="cart-item-name">${item.emoji} ${item.name}</div>
+        <div class="cart-item-qty">× ${qty}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="cart-item-price">₹${(item.price*qty).toLocaleString()}</span>
+        <button class="cart-remove" onclick="changeQty(${id},-${qty})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCart() {
+  document.getElementById('cartPanel').classList.toggle('open');
+}
+
+function placeOrder() {
+  if (Object.keys(cart).length === 0) { showToast('Your cart is empty!', 'error'); return; }
+  const items = Object.entries(cart).map(([id,qty]) => {
+    const item = MENU.find(m => m.id == id);
+    return { ...item, qty };
+  });
+  const total = items.reduce((s,i) => s + i.price*i.qty, 0);
+  const order = {
+    id: 'ORD-' + Date.now().toString().slice(-5),
+    room: guestRoom,
+    type: 'food',
+    items,
+    total,
+    status: 'pending',
+    time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'})
+  };
+  orders.push(order);
+  addActivity(`Food order placed by Room ${guestRoom}`, guestRoom, 'food');
+
+  cart = {};
+  updateCartUI();
+  document.getElementById('cartPanel').classList.remove('open');
+  document.getElementById('cartToggle').classList.remove('visible');
+  renderMenuGrid();
+  updateStaffOrders();
+  updateStaffDashboard();
+  showToast('Order placed! Estimated delivery: 25–35 min 🍽️', 'success');
+  // Switch to My Orders
+  const navItem = document.querySelector('#guestSidebar .nav-item:nth-child(6)');
+  showGuestSection('gMyOrders', navItem);
+}
+
+// ═══════════════════════════════════════════
+// SERVICE REQUEST
+// ═══════════════════════════════════════════
+function requestService(svcId) {
+  const svc = SERVICES.find(s => s.id === svcId);
+  if (!svc) return;
+  const req = {
+    id: 'SVC-' + Date.now().toString().slice(-5),
+    room: guestRoom,
+    type: 'service',
+    service: svc,
+    status: 'pending',
+    time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'})
+  };
+  serviceRequests.push(req);
+  addActivity(`${svc.name} requested by Room ${guestRoom}`, guestRoom, 'service');
+
+  // Visual feedback
+  const el = document.getElementById('svc_' + svcId);
+  if (el) { el.classList.add('selected'); setTimeout(() => el.classList.remove('selected'), 2000); }
+
+  updateStaffService();
+  updateStaffDashboard();
+  updateRoomStatus();
+  showToast(`${svc.name} requested! Staff will attend shortly.`, 'success');
+}
+
+// ═══════════════════════════════════════════
+// CALL STAFF
+// ═══════════════════════════════════════════
+function callStaff() {
+  const room = parseInt(document.getElementById('callRoomInput').value) || guestRoom;
+  const type = document.getElementById('callType').value;
+  const note = document.getElementById('callNote').value;
+  const bell = document.getElementById('bellIcon');
+
+  bell.classList.add('ringing');
+  setTimeout(() => bell.classList.remove('ringing'), 2000);
+
+  const req = {
+    id: 'CALL-' + Date.now().toString().slice(-5),
+    room,
+    type,
+    note,
+    status: 'pending',
+    time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'})
+  };
+  callRequests.push(req);
+  addActivity(`Staff called by Room ${room} (${type})`, room, 'call');
+
+  document.getElementById('callStatus').style.display = 'block';
+  document.getElementById('gCallBadge').style.display = 'flex';
+
+  updateStaffCalls();
+  updateStaffDashboard();
+  updateRoomStatus();
+  showToast('Staff has been alerted! ETA: 3–5 minutes.', 'success');
+}
+
+// ═══════════════════════════════════════════
+// BILL
+// ═══════════════════════════════════════════
+function renderBill() {
+  const roomCharges = 8500 * 3; // 3 nights
+  const foodTotal = orders.filter(o => o.room === guestRoom && o.type === 'food').reduce((s,o) => s+o.total, 0);
+  const svcTotal = serviceRequests.filter(s => s.room === guestRoom && s.service.price > 0).reduce((s,r) => s+r.service.price, 0);
+  const taxes = Math.round((roomCharges + foodTotal + svcTotal) * 0.18);
+  const grand = roomCharges + foodTotal + svcTotal + taxes;
+
+  const rows = [
+    { desc: 'Room Charges — Deluxe Suite (3 nights)', amount: roomCharges },
+    foodTotal > 0 ? { desc: 'Food & Beverages', amount: foodTotal } : null,
+    svcTotal > 0 ? { desc: 'Room Services & Amenities', amount: svcTotal } : null,
+    { desc: 'GST & Service Charge (18%)', amount: taxes },
+  ].filter(Boolean);
+
+  const table = document.getElementById('billTable');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th style="text-align:right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map(r => `<tr><td>${r.desc}</td><td style="text-align:right;font-family:'Cormorant Garamond',serif;font-size:16px;">₹${r.amount.toLocaleString()}</td></tr>`).join('')}
+      <tr class="total-row">
+        <td>Total Amount Due</td>
+        <td style="text-align:right">₹${grand.toLocaleString()}</td>
+      </tr>
+    </tbody>`;
+}
+
+function selectPayMethod(el) {
+  document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function payBill() {
+  document.getElementById('billCard').style.display = 'none';
+  document.getElementById('paidMsg').style.display = 'block';
+  addActivity(`Bill paid by Room ${guestRoom}`, guestRoom, 'bill');
+  showToast('Payment successful! Thank you for your stay.', 'success');
+}
+
+// ═══════════════════════════════════════════
+// MY ORDERS
+// ═══════════════════════════════════════════
+function renderMyOrders() {
+  const el = document.getElementById('myOrdersList');
+  const myOrders = [...orders.filter(o => o.room === guestRoom), ...serviceRequests.filter(s => s.room === guestRoom)];
+  if (myOrders.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;padding:20px 0;letter-spacing:0.1em;">No orders or requests yet.</div>';
+    return;
+  }
+  el.innerHTML = myOrders.map(o => `
+    <div class="request-card">
+      <div class="request-room">${o.room}</div>
+      <div class="request-info">
+        <div class="request-title">${o.type === 'food' ? '🍽️ ' + o.items.map(i=>`${i.name} ×${i.qty}`).join(', ') : '✨ ' + o.service.name}</div>
+        <div class="request-meta">${o.id} · ${o.time}</div>
+      </div>
+      <div>
+        <span class="status status-${o.status === 'completed' ? 'completed' : 'pending'}">${o.status}</span>
+        ${o.total ? `<div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);margin-top:8px;text-align:right;">₹${o.total.toLocaleString()}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════
+// STAFF PANEL UPDATES
+// ═══════════════════════════════════════════
+function updateStaffOrders() {
+  const el = document.getElementById('staffOrdersList');
+  const badge = document.getElementById('sOrderBadge');
+  const pending = orders.filter(o => o.status === 'pending');
+  badge.textContent = pending.length;
+
+  if (orders.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;padding:20px 0;">No food orders yet.</div>';
+    return;
+  }
+  el.innerHTML = orders.map(o => `
+    <div class="request-card ${o.status==='pending'?'urgent':''}">
+      <div class="request-room">${o.room}</div>
+      <div class="request-info">
+        <div class="request-title">${o.items.map(i=>`${i.emoji} ${i.name} ×${i.qty}`).join(', ')}</div>
+        <div class="request-meta">${o.id} · ${o.time} · <strong style="color:var(--gold)">₹${o.total.toLocaleString()}</strong></div>
+      </div>
+      <span class="status status-${o.status==='completed'?'completed':o.status==='confirmed'?'confirmed':'pending'}">${o.status}</span>
+      <div class="request-actions">
+        ${o.status==='pending' ? `<button class="btn-outline" onclick="updateOrderStatus('${o.id}','confirmed')">Confirm</button>` : ''}
+        ${o.status==='confirmed' ? `<button class="btn-primary" style="padding:8px 16px;font-size:10px;" onclick="updateOrderStatus('${o.id}','completed')">Delivered</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateOrderStatus(id, status) {
+  const o = orders.find(x => x.id === id);
+  if (o) { o.status = status; addActivity(`Order ${id} marked ${status}`, o.room, 'food'); }
+  updateStaffOrders();
+  updateStaffDashboard();
+}
+
+function updateStaffService() {
+  const el = document.getElementById('staffServiceList');
+  const badge = document.getElementById('sServiceBadge');
+  badge.textContent = serviceRequests.filter(s => s.status === 'pending').length;
+
+  if (serviceRequests.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;padding:20px 0;">No service requests yet.</div>';
+    return;
+  }
+  el.innerHTML = serviceRequests.map(s => `
+    <div class="request-card ${s.status==='pending'?'urgent':''}">
+      <div class="request-room">${s.room}</div>
+      <div class="request-info">
+        <div class="request-title">${s.service.emoji} ${s.service.name}</div>
+        <div class="request-meta">${s.id} · ${s.time} ${s.service.price > 0 ? '· ₹'+s.service.price : '· Complimentary'}</div>
+      </div>
+      <span class="status status-${s.status==='completed'?'completed':'pending'}">${s.status}</span>
+      <div class="request-actions">
+        ${s.status==='pending' ? `<button class="btn-primary" style="padding:8px 16px;font-size:10px;" onclick="updateServiceStatus('${s.id}','completed')">Complete</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateServiceStatus(id, status) {
+  const s = serviceRequests.find(x => x.id === id);
+  if (s) { s.status = status; addActivity(`Service ${s.service.name} completed for Room ${s.room}`, s.room, 'service'); }
+  updateStaffService();
+  updateStaffDashboard();
+  updateRoomStatus();
+}
+
+function updateStaffCalls() {
+  const el = document.getElementById('staffCallList');
+  const badge = document.getElementById('sCallBadgeS');
+  const pending = callRequests.filter(c => c.status === 'pending');
+  if (pending.length > 0) { badge.style.display = 'flex'; badge.textContent = pending.length; }
+  else { badge.style.display = 'none'; }
+
+  if (callRequests.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;padding:20px 0;">No call requests yet.</div>';
+    return;
+  }
+  const typeLabels = {general:'General',maintenance:'Maintenance',housekeeping:'Housekeeping',food:'Food Query',medical:'⚠️ Medical',checkout:'Checkout'};
+  el.innerHTML = callRequests.map(c => `
+    <div class="request-card ${c.type==='medical'||c.status==='pending'?'urgent':''}">
+      <div class="request-room">${c.room}</div>
+      <div class="request-info">
+        <div class="request-title">${typeLabels[c.type]||c.type} — Room ${c.room}</div>
+        <div class="request-meta">${c.id} · ${c.time}${c.note ? ' · "'+c.note+'"' : ''}</div>
+      </div>
+      <span class="status status-${c.status==='completed'?'completed':c.type==='medical'?'urgent':'pending'}">${c.status==='completed'?'Attended':c.type==='medical'?'Urgent':'Pending'}</span>
+      <div class="request-actions">
+        ${c.status==='pending' ? `<button class="btn-primary" style="padding:8px 16px;font-size:10px;" onclick="updateCallStatus('${c.id}','completed')">Attended</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateCallStatus(id, status) {
+  const c = callRequests.find(x => x.id === id);
+  if (c) { c.status = status; addActivity(`Call from Room ${c.room} attended`, c.room, 'call'); }
+  updateStaffCalls();
+  updateStaffDashboard();
+  updateRoomStatus();
+}
+
+function updateStaffDashboard() {
+  document.getElementById('dashOrders').textContent = orders.length;
+  document.getElementById('dashService').textContent = serviceRequests.length;
+  document.getElementById('dashCalls').textContent = callRequests.length;
+  document.getElementById('sOrderBadge').textContent = orders.filter(o=>o.status==='pending').length;
+
+  // Activity feed
+  const feed = document.getElementById('activityFeed');
+  if (activities.length === 0) {
+    feed.innerHTML = `<div class="request-card"><div class="request-room">—</div><div class="request-info"><div class="request-title">No activity yet.</div><div class="request-meta">Waiting for requests…</div></div></div>`;
+    return;
+  }
+  feed.innerHTML = activities.slice(-8).reverse().map(a => `
+    <div class="request-card">
+      <div class="request-room">${a.room}</div>
+      <div class="request-info">
+        <div class="request-title">${a.msg}</div>
+        <div class="request-meta">${a.time}</div>
+      </div>
+      <span class="status status-${a.type==='food'?'confirmed':a.type==='call'?'urgent':'pending'}">${a.type}</span>
+    </div>
+  `).join('');
+}
+
+function addActivity(msg, room, type) {
+  activities.push({ msg, room, type, time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}) });
+}
+
+// ═══════════════════════════════════════════
+// ROOM STATUS
+// ═══════════════════════════════════════════
+function updateRoomStatus() {
+  renderRooms();
+}
+
+function renderRooms() {
+  const grid = document.getElementById('roomGrid');
+  if (!grid) return;
+  grid.innerHTML = ROOMS.map(r => {
+    const hasPendingCall = callRequests.some(c => c.room === r && c.status === 'pending');
+    const hasPendingService = serviceRequests.some(s => s.room === r && s.status === 'pending');
+    const isOccupied = occupiedRooms.has(r) || orders.some(o=>o.room===r) || serviceRequests.some(s=>s.room===r) || callRequests.some(c=>c.room===r);
+
+    let cls = '';
+    if (hasPendingCall) cls = 'calling';
+    else if (hasPendingService) cls = 'service';
+    else if (isOccupied) cls = 'occupied';
+
+    return `<div class="room-btn ${cls}" title="Room ${r}">${r}</div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg, type='success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span> ${msg}`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+renderMenuGrid();
+renderServiceGrid();
+updateCartUI();
+</script>
+</body>
+</html>
